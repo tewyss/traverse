@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Traverse · Maze & Pathfinding Visualizer</title>
+  <meta name="description" content="Watch maze generation and pathfinding algorithms work step by step: A*, Dijkstra, BFS, DFS, Kruskal, Prim, Wilson and more. Built with vanilla JavaScript." />
+  <meta name="theme-color" content="#0b1120" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230b1120'/%3E%3Cpath d='M9 9h8v7h6v7' fill='none' stroke='%232dd4bf' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='9' cy='9' r='2.8' fill='%232dd4bf'/%3E%3Ccircle cx='23' cy='23' r='2.8' fill='%2338bdf8'/%3E%3C/svg%3E" />
+
+  <script>
+    try {
+      const saved = localStorage.getItem('traverse-theme');
+      if (saved) document.documentElement.dataset.theme = saved;
+    } catch {}
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/learn.css" />
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#visualizer" aria-label="Traverse home">
+      <svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="1" y="1" width="30" height="30" rx="9" class="logo-bg" />
+        <path d="M9 9h8v7h6v7" class="logo-path" />
+        <circle cx="9" cy="9" r="2.8" class="logo-start" />
+        <circle cx="23" cy="23" r="2.8" class="logo-end" />
+      </svg>
+      <span class="brand-name">Traverse</span>
+      <span class="brand-sub">maze &amp; pathfinding visualizer</span>
+    </a>
+
+    <nav class="tabs" aria-label="Sections">
+      <a class="tab" href="#visualizer" data-view="visualizer"><i class="fa-solid fa-table-cells"></i><span>Visualizer</span></a>
+      <a class="tab" href="#learn" data-view="learn"><i class="fa-solid fa-circle-question"></i><span>Learn &amp; FAQ</span></a>
+    </nav>
+
+    <div class="topbar-actions">
+      <a class="link-pill" href="https://github.com/tewyss/MazeGeneratorAndSolver" target="_blank" rel="noopener" title="The original C++ / SFML version">
+        <i class="fa-solid fa-code-branch"></i><span>C++ original</span>
+      </a>
+      <a class="icon-btn" href="https://github.com/tewyss/traverse" target="_blank" rel="noopener" aria-label="Source code on GitHub" title="Source code">
+        <i class="fa-brands fa-github"></i>
+      </a>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch theme"><i class="fa-solid fa-sun"></i></button>
+    </div>
+  </header>
+
+  <main class="view app" id="view-visualizer">
+    <aside class="panel">
+      <section class="panel-section">
+        <div class="section-head">
+          <h2 class="section-title"><span class="section-num">01</span>Build a maze</h2>
+          <p class="section-sub">Generate one, or draw your own below.</p>
+        </div>
+        <label class="field">
+          <span class="field-label">Generator</span>
+          <span class="select"><select id="gen-algo"></select><i class="fa-solid fa-chevron-down"></i></span>
+        </label>
+        <p class="algo-desc" id="gen-desc"></p>
+        <label class="field" id="loops-field">
+          <span class="field-label">
+            <span>Extra loops <i class="fa-regular fa-circle-question info" title="Knocks out random walls so there's more than one route. At 0% there is exactly one path between any two cells."></i></span>
+            <output id="loops-out">6%</output>
+          </span>
+          <input type="range" id="loops" min="0" max="30" value="6" />
+        </label>
+        <button class="btn btn-secondary" id="btn-generate" type="button">
+          <i class="fa-solid fa-shuffle"></i>Generate maze<kbd>G</kbd>
+        </button>
+      </section>
+
+      <section class="panel-section">
+        <div class="section-head">
+          <h2 class="section-title"><span class="section-num">02</span>Find the path</h2>
+          <p class="section-sub">Pick an algorithm and watch it search.</p>
+        </div>
+        <label class="field">
+          <span class="field-label">Algorithm</span>
+          <span class="select"><select id="solve-algo"></select><i class="fa-solid fa-chevron-down"></i></span>
+        </label>
+        <p class="algo-desc" id="solve-desc"></p>
+        <ul class="chips" id="solve-chips"></ul>
+        <button class="btn btn-primary" id="btn-solve" type="button">
+          <i class="fa-solid fa-play"></i>Find path<kbd>V</kbd>
+        </button>
+      </section>
+
+      <section class="panel-section">
+        <div class="section-head">
+          <h2 class="section-title"><span class="section-num">03</span>Draw your own</h2>
+          <p class="section-sub">Pick a tool, then drag on the grid.</p>
+        </div>
+        <div class="segmented" id="tools" role="radiogroup" aria-label="Drawing tool">
+          <button type="button" role="radio" aria-checked="true" data-tool="wall"><i class="fa-solid fa-square"></i>Wall</button>
+          <button type="button" role="radio" aria-checked="false" data-tool="weight"><i class="fa-solid fa-diamond"></i>Weight</button>
+          <button type="button" role="radio" aria-checked="false" data-tool="erase"><i class="fa-solid fa-eraser"></i>Erase</button>
+        </div>
+        <p class="tool-hint" id="tool-hint"></p>
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="btn-clear-path" type="button">Clear path<kbd>C</kbd></button>
+          <button class="btn btn-ghost" id="btn-clear-board" type="button">Clear board</button>
+        </div>
+      </section>
+
+      <footer class="panel-footer">
+        <div class="shortcuts">
+          <span><kbd>Space</kbd> play / pause</span>
+          <span><kbd>→</kbd> step</span>
+          <span><kbd>F</kbd> skip to end</span>
+          <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> tools</span>
+        </div>
+        <p class="credit">
+          Built by <a href="https://github.com/tewyss" target="_blank" rel="noopener">Rostislav Nevoral</a> ·
+          vanilla JS, no libraries
+        </p>
+      </footer>
+    </aside>
+
+    <section class="stage">
+      <div class="stage-card">
+        <div class="toolbar">
+          <div class="status" id="status" data-state="idle" role="status" aria-live="polite">
+            <span class="status-dot"></span>
+            <span class="status-label" id="status-label">Ready</span>
+            <span class="status-detail" id="status-detail"></span>
+          </div>
+          <div class="playback">
+            <button class="icon-btn" id="btn-play" type="button" aria-label="Play" title="Play / pause (Space)"><i class="fa-solid fa-play"></i></button>
+            <button class="icon-btn" id="btn-step" type="button" aria-label="Step" title="Step (→)"><i class="fa-solid fa-forward-step"></i></button>
+            <button class="icon-btn" id="btn-finish" type="button" aria-label="Skip to end" title="Skip to end (F)"><i class="fa-solid fa-forward-fast"></i></button>
+            <span class="divider" aria-hidden="true"></span>
+            <label class="speed" title="Playback speed">
+              <i class="fa-solid fa-gauge-high"></i>
+              <input type="range" id="speed" min="1" max="10" value="7" aria-label="Speed" />
+              <output id="speed-out">350/s</output>
+            </label>
+          </div>
+          <div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
+        </div>
+
+        <div class="tipbar" id="tipbar">
+          <i class="fa-solid fa-lightbulb tip-icon"></i>
+          <p class="tip-text" id="tip-text"></p>
+          <a class="tip-link" href="#learn">How does it work?</a>
+          <button class="icon-btn tip-close" id="tip-close" type="button" aria-label="Hide tip"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="board-wrap" id="board-wrap">
+          <div class="board" id="board" aria-label="Grid. Click and drag to draw."></div>
+        </div>
+
+        <ul class="legend">
+          <li><span class="swatch sw-start"></span>Start</li>
+          <li><span class="swatch sw-end"></span>Goal</li>
+          <li><span class="swatch sw-wall"></span>Wall</li>
+          <li><span class="swatch sw-weight"></span>Weight ×5</li>
+          <li><span class="swatch sw-frontier"></span>Frontier</li>
+          <li><span class="swatch sw-visited"></span>Explored</li>
+          <li><span class="swatch sw-path"></span>Path</li>
+        </ul>
+      </div>
+
+      <div class="stats">
+        <div class="stat" title="How many cells the algorithm had to look at before it finished">
+          <span class="stat-label">Cells explored</span><span class="stat-value" id="stat-visited">0</span>
+        </div>
+        <div class="stat" title="Number of steps from start to goal">
+          <span class="stat-label">Path length</span><span class="stat-value" id="stat-length">—</span>
+        </div>
+        <div class="stat" title="Sum of step costs. A normal cell costs 1, a weighted cell costs 5">
+          <span class="stat-label">Path cost</span><span class="stat-value" id="stat-cost">—</span>
+        </div>
+        <div class="stat" title="Time the algorithm itself took, without the animation">
+          <span class="stat-label">Compute time</span><span class="stat-value" id="stat-time">—</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <main class="view learn" id="view-learn" hidden>
+    <header class="learn-hero">
+      <span class="eyebrow">// learn &amp; faq</span>
+      <h1>How does a computer find its way?</h1>
+      <p class="lead">
+        Traverse is an interactive playground for the algorithms behind maze solvers, game AI and route planners.
+        Build a maze, pick an algorithm, and watch it search, one cell at a time.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#visualizer"><i class="fa-solid fa-play"></i>Open the visualizer</a>
+        <a class="btn btn-outline" href="#faq"><i class="fa-regular fa-comments"></i>Jump to FAQ</a>
+      </div>
+      <nav class="toc" aria-label="On this page">
+        <a href="#what">What it is</a>
+        <a href="#how">How to use it</a>
+        <a href="#reading">Reading the grid</a>
+        <a href="#algorithms">The algorithms</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </header>
+
+    <section class="learn-section" id="what">
+      <span class="eyebrow">// 01</span>
+      <h2>What is it, and what is it for?</h2>
+      <p>
+        Finding a route from A to B is one of the most common problems in computing. Your phone does it for directions,
+        a game does it for every enemy chasing you, a robot vacuum does it for your living room. Code on paper hides
+        <em>how</em> these algorithms think. Traverse shows it.
+      </p>
+      <div class="card-grid three">
+        <div class="info-card">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <h3>Learn</h3>
+          <p>See what BFS, Dijkstra or A* actually do instead of reading pseudocode. Great before an exam or an interview.</p>
+        </div>
+        <div class="info-card">
+          <i class="fa-solid fa-scale-balanced"></i>
+          <h3>Compare</h3>
+          <p>Run different algorithms on the same maze and compare how many cells they explore and how good their path is.</p>
+        </div>
+        <div class="info-card">
+          <i class="fa-solid fa-flask"></i>
+          <h3>Experiment</h3>
+          <p>Draw walls, add expensive terrain, move the goal, and watch the path change live as you edit.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="learn-section" id="how">
+      <span class="eyebrow">// 02</span>
+      <h2>How to use it</h2>
+      <ol class="steps">
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <h3>Build a maze</h3>
+            <p>Pick a generator and press <strong>Generate maze</strong>, or start from an empty board with <strong>Clear board</strong>.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>
+            <h3>Find the path</h3>
+            <p>Choose a pathfinding algorithm and press <strong>Find path</strong>. The tags under it tell you whether it guarantees the shortest route.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div>
+            <h3>Control the replay</h3>
+            <p>Use the bar above the grid to <strong>pause</strong>, go <strong>one step</strong> at a time, <strong>skip to the end</strong>, or change the <strong>speed</strong>.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div>
+            <h3>Play with it</h3>
+            <p><strong>Left-drag</strong> draws with the selected tool, <strong>right-drag</strong> erases. Drag the <span class="dot dot-start"></span> start or <span class="dot dot-end"></span> goal to move them. After a search, every change re-solves instantly.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="learn-section" id="reading">
+      <span class="eyebrow">// 03</span>
+      <h2>Reading the grid</h2>
+      <p>Every color has a meaning. Together they show what the algorithm knows at each moment.</p>
+      <dl class="key-list">
+        <div><dt><span class="swatch sw-start"></span>Start &amp; <span class="swatch sw-end"></span>Goal</dt><dd>Where the search begins and where it's trying to go. Drag them anywhere.</dd></div>
+        <div><dt><span class="swatch sw-wall"></span>Wall</dt><dd>Blocked. Nothing can pass through.</dd></div>
+        <div><dt><span class="swatch sw-weight"></span>Weight</dt><dd>Passable but expensive. Stepping on it costs 5 instead of 1, like mud or a traffic jam.</dd></div>
+        <div><dt><span class="swatch sw-frontier"></span>Frontier</dt><dd>Cells the algorithm has discovered but not examined yet. Its "to do" list.</dd></div>
+        <div><dt><span class="swatch sw-visited"></span>Explored</dt><dd>Cells the algorithm has fully examined. Fewer explored cells means less work.</dd></div>
+        <div><dt><span class="swatch sw-path"></span>Path</dt><dd>The final route from start to goal that the algorithm found.</dd></div>
+      </dl>
+    </section>
+
+    <section class="learn-section" id="algorithms">
+      <span class="eyebrow">// 04</span>
+      <h2>The algorithms</h2>
+      <h3 class="sub-heading">Pathfinding</h3>
+      <p>
+        They all differ in <em>which cell they look at next</em>. That one decision explains all the differences you see on the grid.
+      </p>
+      <div class="table-wrap">
+        <table class="algo-table">
+          <thead>
+            <tr><th>Algorithm</th><th>Shortest path</th><th>Uses weights</th><th>Picks next cell from</th><th>Time</th><th>Best for</th></tr>
+          </thead>
+          <tbody id="solver-table"></tbody>
+        </table>
+      </div>
+      <p class="footnote">Time complexity in big-O notation: V is the number of cells, E the number of connections between them.</p>
+
+      <h3 class="sub-heading">Maze generation</h3>
+      <p>
+        Every "perfect" maze has exactly one route between any two cells, but each generator leaves its own fingerprint.
+        Try generating each one and compare the corridors.
+      </p>
+      <div class="card-grid two" id="gen-list"></div>
+    </section>
+
+    <section class="learn-section" id="faq">
+      <span class="eyebrow">// 05</span>
+      <h2>Frequently asked questions</h2>
+      <div class="faq">
+        <details>
+          <summary>Why does A* explore fewer cells than Dijkstra but find the same path?</summary>
+          <p>
+            Dijkstra spreads out evenly in every direction because it doesn't know where the goal is. A* adds a guess
+            (the <em>heuristic</em>): the straight-line grid distance to the goal. It prefers cells that look closer,
+            so it wastes less time going the wrong way. The guess never overestimates, so A* still returns the optimal route.
+          </p>
+        </details>
+        <details>
+          <summary>Why is the path from DFS so long and twisty?</summary>
+          <p>
+            Depth-first search always keeps going down the current corridor and only backs up at a dead end.
+            It stops at the first route that reaches the goal, not the best one. That's why the "Shortest path" tag shows ✕ for it.
+          </p>
+        </details>
+        <details>
+          <summary>What is the difference between path length and path cost?</summary>
+          <p>
+            <strong>Length</strong> counts steps. <strong>Cost</strong> adds up what each step costs: 1 for a normal cell,
+            5 for a weighted one. Without weights they're the same number. With weighted terrain, Dijkstra and A* may take
+            a longer route that's cheaper overall, while BFS takes the shortest route even if it walks straight through the mud.
+          </p>
+        </details>
+        <details>
+          <summary>What does "Compute time" measure?</summary>
+          <p>
+            Only the algorithm itself. Each algorithm first runs to completion in a fraction of a millisecond and records
+            every step it took. The animation then replays that recording at the speed you choose. So the animation speed
+            doesn't affect the time shown.
+          </p>
+        </details>
+        <details>
+          <summary>What does "Extra loops" do?</summary>
+          <p>
+            Generated mazes are "perfect": exactly one route between any two points, so every algorithm finds the same path.
+            Extra loops knock out a few random walls to create alternative routes. That's where the differences between
+            shortest-path algorithms and the rest really show.
+          </p>
+        </details>
+        <details>
+          <summary>Why is the grid always an odd number of cells wide?</summary>
+          <p>
+            Walls here are whole cells rather than thin lines. The maze needs "rooms" on odd coordinates with walls between
+            them, surrounded by an outer wall. That only works with odd dimensions.
+          </p>
+        </details>
+        <details>
+          <summary>Is this how Google Maps works?</summary>
+          <p>
+            Same family of ideas, much bigger scale. Road networks have millions of intersections, so real route planners
+            use Dijkstra and A* variants together with heavy preprocessing (for example <em>contraction hierarchies</em>)
+            to answer in milliseconds. The core idea of expanding the cheapest option first is exactly what you see here.
+          </p>
+        </details>
+        <details>
+          <summary>Can I use it on my phone?</summary>
+          <p>
+            Yes. The layout adapts to small screens and you can draw with your finger. On touch screens there's no
+            right-click, so use the <strong>Erase</strong> tool to remove walls.
+          </p>
+        </details>
+        <details>
+          <summary>Which keyboard shortcuts are there?</summary>
+          <div class="shortcut-table">
+            <span><kbd>G</kbd></span><span>Generate a maze</span>
+            <span><kbd>V</kbd></span><span>Find path</span>
+            <span><kbd>Space</kbd></span><span>Play / pause</span>
+            <span><kbd>→</kbd></span><span>One step</span>
+            <span><kbd>F</kbd></span><span>Skip to the end</span>
+            <span><kbd>C</kbd></span><span>Clear the path</span>
+            <span><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></span><span>Wall / weight / erase tool</span>
+          </div>
+        </details>
+        <details>
+          <summary>How was it built?</summary>
+          <p>
+            Plain HTML, CSS and JavaScript with no frameworks or libraries. It started as a C++/SFML desktop app
+            (<a href="https://github.com/tewyss/MazeGeneratorAndSolver" target="_blank" rel="noopener">the original</a>)
+            and was rebuilt for the web with more algorithms, live editing and replay controls. The
+            <a href="https://github.com/tewyss/traverse" target="_blank" rel="noopener">source code</a> is on GitHub.
+          </p>
+        </details>
+      </div>
+    </section>
+
+    <footer class="learn-footer">
+      <p>Built by <a href="https://github.com/tewyss" target="_blank" rel="noopener">Rostislav Nevoral</a></p>
+      <a class="btn btn-primary" href="#visualizer"><i class="fa-solid fa-play"></i>Try it yourself</a>
+    </footer>
+  </main>
+</body>
+</html>
