@@ -6,6 +6,8 @@ Written in vanilla JavaScript with no frameworks and no libraries.
 This is the web version of my C++/SFML [Maze Generator and Solver](https://github.com/tewyss/MazeGeneratorAndSolver),
 rebuilt with more algorithms, live editing and playback controls.
 
+![App screenshot](docs/images//traverse.png)
+
 ## Features
 
 - **7 maze generators:** recursive backtracker, Kruskal (disjoint-set union), Prim, Wilson (loop-erased random walks),
