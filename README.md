@@ -3,10 +3,12 @@
 Watch maze generators and pathfinding algorithms work step by step, in the browser.
 Written in vanilla JavaScript with no frameworks and no libraries.
 
+**Live demo: [traverse.rostislavnevoral.dev](https://traverse.rostislavnevoral.dev)**
+
 This is the web version of my C++/SFML [Maze Generator and Solver](https://github.com/tewyss/MazeGeneratorAndSolver),
 rebuilt with more algorithms, live editing and playback controls.
 
-![App screenshot](docs/images//traverse.png)
+![App screenshot](docs/images/traverse.png)
 
 ## Features
 
@@ -68,4 +70,9 @@ python -m http.server 5173
 # or: npx serve
 ```
 
-Then open http://localhost:5173. It deploys as-is to GitHub Pages.
+Then open http://localhost:5173.
+
+## Deployment
+
+Static site, no build step. Deployed with Cloudflare Pages straight from the `main` branch
+(framework preset: None, build command: empty, output directory: empty).
