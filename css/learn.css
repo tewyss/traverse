@@ -45,14 +45,6 @@
   font-weight: 600;
 }
 
-.eyebrow {
-  display: inline-block;
-  margin-bottom: 12px;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--accent);
-}
-
 
 .learn-hero {
   padding-bottom: 56px;
@@ -104,7 +96,7 @@
 
 .learn .toc a {
   padding: 6px 14px;
-  border-radius: 999px;
+  border-radius: 4px;
   font-size: 0.84rem;
   color: var(--text-secondary);
   background: var(--card-bg);
@@ -168,8 +160,7 @@
 }
 
 .info-card:hover {
-  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
-  transform: translateY(-2px);
+  border-color: var(--text-muted);
 }
 
 .info-card > i {
@@ -178,7 +169,7 @@
   width: 40px;
   height: 40px;
   margin-bottom: 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   color: var(--accent);
   background: var(--accent-soft);
 }
@@ -204,7 +195,7 @@
 
 .tag {
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: 4px;
   font-family: var(--font-mono);
   font-size: 0.66rem;
   font-weight: 500;
@@ -366,7 +357,7 @@
 }
 
 .faq details {
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   transition: border-color 0.2s;
